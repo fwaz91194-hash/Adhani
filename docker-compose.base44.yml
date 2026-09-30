@@ -1,0 +1,27 @@
+services:
+  bot:
+    image: python:3.12-slim
+    working_dir: /app
+    volumes:
+      - ./:/app
+      - pip-cache:/root/.cache/pip
+    ports:
+      - "3000:3000"
+    env_file:
+      - ./.env.base44-defaults
+      - /run/base44/app.env
+    environment:
+      - PORT=3000
+      - WEBHOOK_URL=https://3000-${BASE44_PUBLIC_HOST_SUFFIX}
+      - PYTHONUNBUFFERED=1
+    command: ["sh", "-ec", "pip install --no-cache-dir -r requirements.txt && exec python main.py"]
+    restart: on-failure
+    healthcheck:
+      test: ["CMD", "python3", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:3000/health').read()"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 45s
+
+volumes:
+  pip-cache:
